@@ -565,46 +565,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ============================================================
-     10. WHATSAPP PREMIUM — Balão com digitação
+     10. WHATSAPP PREMIUM — Bloco REMOVIDO (handler duplicado)
+     Bug fix: este bloco fazia o balão aparecer após 6s do load
+     (sem depender de scroll), entrando em conflito com o handler
+     correto em initWaPremium() — que só dispara o balão quando o
+     usuário chega na seção #servicos (25s depois). A lógica única
+     agora vive em initWaPremium() mais abaixo.
      ============================================================ */
-  const waBubble  = document.getElementById('wa-message-bubble');
-  const waTyping  = document.getElementById('wa-typing');
-  const waMsg     = document.getElementById('wa-real-message');
-  const waBadge   = document.getElementById('wa-notification');
-  const waClose   = document.getElementById('wa-close-btn');
-  const waMainBtn = document.getElementById('wa-main-btn');
-
-  if (waBubble && waClose && waMainBtn) {
-    // Mostrar balão após 6 s
-    setTimeout(() => {
-      waBubble.classList.add('show');
-      // Simular digitação por 2,5 s
-      setTimeout(() => {
-        if (waTyping) waTyping.style.display = 'none';
-        if (waMsg)    waMsg.style.display = 'block';
-
-        // Sumir automaticamente após 30 segundos de exibição
-        setTimeout(() => {
-          waBubble.classList.remove('show');
-          // Mostrar badge de notificação para indicar que há uma mensagem pendente
-          if (waBadge) waBadge.classList.add('show');
-        }, 30000);
-      }, 2500);
-    }, 6000);
-
-    // Fechar balão → mostrar badge após 2 s
-    waClose.addEventListener('click', (e) => {
-      e.preventDefault();
-      waBubble.classList.remove('show');
-      setTimeout(() => { if (waBadge) waBadge.classList.add('show'); }, 2000);
-    });
-
-    // Clique no botão → remove balão e badge
-    waMainBtn.addEventListener('click', () => {
-      waBubble.classList.remove('show');
-      if (waBadge) waBadge.classList.remove('show');
-    });
-  }
 
   /* ============================================================
      11. VÍDEOS — Boutique Reel V2 Handler
@@ -750,11 +717,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  /* ──── AUTO-ROTATION: troca o vídeo principal a cada X segundos ──── */
+  /* ──── AUTO-ROTATION: avança quando o vídeo principal TERMINA naturalmente ────
+     Bug fix: antes usava setInterval(8000) fixo, que cortava vídeos longos antes
+     do fim. Agora a troca acontece no evento 'ended' do bvMain, garantindo que
+     cada vídeo toque 100% até o último segundo. Fallback de 60s protege caso
+     o evento 'ended' não dispare (ex.: vídeo travado no último frame). */
   const bvCards = Array.from(document.querySelectorAll('.bv-card'));
-  let bvAutoTimer = null;
+  let bvFallbackTimer = null;
   let bvAutoIndex = 0;
-  const BV_INTERVAL = 8000; // 8 segundos por vídeo
+  let bvAutoActive = false;
+  const BV_FALLBACK_MAX = 60000; // teto de segurança (vídeo nunca dura > 60s)
 
   function bvFindActiveIndex() {
     const idx = bvCards.findIndex(c => c.classList.contains('is-active'));
@@ -762,20 +734,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function bvNextCard() {
-    if (!bvCards.length) return;
+    if (!bvCards.length || !bvAutoActive) return;
     bvAutoIndex = (bvFindActiveIndex() + 1) % bvCards.length;
     const nextCard = bvCards[bvAutoIndex];
     if (nextCard) nextCard.click();
   }
 
+  function bvArmFallbackTimer() {
+    bvClearFallbackTimer();
+    bvFallbackTimer = setTimeout(bvNextCard, BV_FALLBACK_MAX);
+  }
+
+  function bvClearFallbackTimer() {
+    if (bvFallbackTimer) { clearTimeout(bvFallbackTimer); bvFallbackTimer = null; }
+  }
+
   function bvStartAutoRotate() {
-    bvStopAutoRotate();
     if (!bvCards.length || !bvFrame) return;
-    bvAutoTimer = setInterval(bvNextCard, BV_INTERVAL);
+    bvAutoActive = true;
+    bvArmFallbackTimer();
   }
 
   function bvStopAutoRotate() {
-    if (bvAutoTimer) { clearInterval(bvAutoTimer); bvAutoTimer = null; }
+    bvAutoActive = false;
+    bvClearFallbackTimer();
+  }
+
+  // Vídeo terminou naturalmente → próximo card. Também rearma o fallback
+  // toda vez que um novo vídeo começa a tocar.
+  if (bvMain) {
+    bvMain.addEventListener('ended', () => {
+      if (bvAutoActive) bvNextCard();
+    });
+    bvMain.addEventListener('play', () => {
+      if (bvAutoActive) bvArmFallbackTimer();
+    });
   }
 
   // Inicia auto-rotation quando a seção entra na viewport, pausa quando sai
