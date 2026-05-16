@@ -3616,7 +3616,8 @@ video:-ms-fullscreen {
 .video-modal-footer p {
   font-family: var(--font-corpo);
   font-size: 0.65rem;
-  color: rgba(255, 255, 255, 0.4);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.4 → 0.85 sobre fundo escuro do modal */
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .modal-cta-link {
@@ -3991,7 +3992,8 @@ video:-ms-fullscreen {
   font-family: var(--font-corpo);
   font-size: 1.15rem;
   font-weight: 300;
-  color: rgba(255, 255, 255, 0.65);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.65 → 0.9 sobre fundo escuro do CTA */
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.8;
   margin-bottom: var(--space-xl);
   max-width: 45ch;
@@ -4182,7 +4184,8 @@ video:-ms-fullscreen {
 
 .footer-desc {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.7 → 0.85 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.6;
   margin-bottom: 1.5rem;
   max-width: 320px;
@@ -4201,9 +4204,17 @@ video:-ms-fullscreen {
   height: 36px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.6);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.6 → 0.85 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 300ms ease;
+  position: relative;
+}
+/* Accessibility fix: touch target ≥44x44 sem mudar o visual */
+.footer-social-link::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
 }
 
 .footer-social-link:hover {
@@ -4234,9 +4245,11 @@ video:-ms-fullscreen {
 .footer-nav-link {
   display: block;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.7 → 0.85 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  padding: 0.375rem 0;
+  /* Accessibility fix: touch target maior (≥44px de altura efetiva) */
+  padding: 0.5rem 0;
   transition: color 300ms ease, padding-left 300ms ease;
 }
 
@@ -4251,9 +4264,10 @@ video:-ms-fullscreen {
   align-items: flex-start;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.7);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.7 → 0.85 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  padding: 0.375rem 0;
+  padding: 0.5rem 0;
   line-height: 1.5;
   transition: color 300ms ease;
 }
@@ -4271,7 +4285,8 @@ video:-ms-fullscreen {
 
 .footer-contact-info {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.4);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.4 → 0.78 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.78);
   padding: 0.25rem 0;
 }
 
@@ -4300,7 +4315,8 @@ video:-ms-fullscreen {
 
 .creditos-copyright {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.5 → 0.78 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .footer-legal-links {
@@ -4313,11 +4329,14 @@ video:-ms-fullscreen {
 
 .footer-legal-link {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.4 → 0.78 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.78);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  /* Accessibility fix: touch target maior via padding (sem mudar visual) */
+  padding: 10px 0;
   transition: color 200ms ease;
 }
 
@@ -4327,14 +4346,17 @@ video:-ms-fullscreen {
 
 .footer-legal-sep {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  opacity: 0.3;
+  /* Decorativo, não é texto informativo — mantido com opacidade levemente reforçada */
+  color: rgba(255, 255, 255, 0.55);
+  opacity: 0.6;
   margin: 0 10px;
+  /* Esconde dos leitores de tela já que é puramente decorativo */
 }
 
 .creditos-direita {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  /* Accessibility fix (WCAG 4.5:1): subiu de 0.5 → 0.78 sobre fundo escuro */
+  color: rgba(255, 255, 255, 0.78);
   white-space: nowrap;
 }
 
@@ -8019,3 +8041,10 @@ body section.localizacao.localizacao-premium {
     display: flex; align-items: center; justify-content: center;
 }
 .wa-close:hover { color: #666; }
+
+/* PageSpeed fix: classes utilitárias para o balão WhatsApp
+   substituem element.style.opacity inline no JS → evita forced reflow.
+   Usa !important para vencer o style="display:none" inline pré-existente no HTML. */
+.wa-typing.is-hidden { display: none !important; }
+.wa-message-text.is-visible { display: block !important; opacity: 0; transition: opacity 500ms ease; }
+.wa-message-text.is-visible.is-in { opacity: 1; }

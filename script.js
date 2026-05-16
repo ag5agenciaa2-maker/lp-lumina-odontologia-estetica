@@ -994,13 +994,13 @@ document.addEventListener('DOMContentLoaded', () => {
             bubble.classList.add('show');
 
             // 2.5s de "digitando..." → mensagem real
+            // PageSpeed fix: usar classList (sem inline style) evita forced reflow
             setTimeout(() => {
               if (userClosed) return;
-              typing.style.display = 'none';
-              realMessage.style.display = 'block';
-              realMessage.style.opacity = '0';
-              realMessage.style.transition = 'opacity 0.5s ease';
-              setTimeout(() => { realMessage.style.opacity = '1'; }, 50);
+              typing.classList.add('is-hidden');
+              realMessage.classList.add('is-visible');
+              // próximo frame: liga o fade-in via classe (a transição vive no CSS)
+              requestAnimationFrame(() => realMessage.classList.add('is-in'));
             }, DURATION_TYPING);
 
             // 15s depois → balão some automaticamente
