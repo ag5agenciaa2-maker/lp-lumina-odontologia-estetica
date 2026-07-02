@@ -9,3 +9,4 @@ Thumbs.db
 
 # Arquivos de mídia originais pesados (não vão para o repo)
 Docs/Imagens e Vídeos Originais/
+.wrangler/
